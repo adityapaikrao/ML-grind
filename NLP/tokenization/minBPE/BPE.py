@@ -86,7 +86,7 @@ class BPETokenizer(Tokenizer):
             # i.e ensure that we merge the pairs with index 259 before so that we can later merge pairs of (259, 213) etc.
 
             merges_pairs = {pair: self.merges.get(pair, float("inf")) for pair in counts.keys()} # pair -> token index
-            min_merge_pair = min(merges_pairs, key = merges_pairs.get)
+            min_merge_pair = min(merges_pairs, key=lambda p: merges_pairs[p])
 
             if min_merge_pair not in self.merges: 
                 # new pair we havent seen in training before 
