@@ -25,9 +25,9 @@ class NeuralNet:
         
         self.W3 = torch.randn(d2, d_out) * 0.01
         self.B3 = torch.randn(1, d_out) * 0.01
-        self.activation3 = F.sigmoid
+        self.activation3 = lambda x: x
 
-        self.loss = F.binary_cross_entropy
+        self.loss = F.binary_cross_entropy_with_logits
         self.learning_rate = learning_rate
     
     def forward(self, x: torch.Tensor, grad=False) -> torch.Tensor:
@@ -47,9 +47,9 @@ class NeuralNet:
         Y = self.activation3(Z3)
 
         if grad:
-            self.W3_cache = self.W3
-            self.W2_cache = self.W2
-            self.x_cache = x
+            self.W3_cache = self.W3.clone()
+            self.W2_cache = self.W2.clone()
+            self.x_cache = x.clone()
 
 
         return Y
@@ -60,7 +60,7 @@ class NeuralNet:
         """
 
         # compute error
-        upstream3 = yhat - y # N, dout
+        upstream3 = torch.sigmoid(yhat) - y # N, dout
 
         # layer 3 update
         dW3 = self.A2.T @ upstream3  # input * activation_grad * error
@@ -117,15 +117,15 @@ if __name__ == "__main__":
     model = NeuralNet(d_in=2, d1=16, d2=8, d_out=1, learning_rate=1e-2)
 
     # Train
-    epochs = 1000
+    epochs = 100
     for epoch in range(epochs):
         yhat = model.forward(X_train, grad=True)
         loss = model.loss(yhat, y_train)
         model.backprop(yhat, y_train)
 
-        if (epoch + 1) % 100 == 0:
+        if (epoch + 1) % 10 == 0:
             with torch.no_grad():
-                preds = (yhat >= 0.5).float()
+                preds = (torch.sigmoid(yhat) >= 0.5).float()
                 acc = (preds == y_train).float().mean().item()
             print(f"Epoch [{epoch + 1}/{epochs}] Loss: {loss.item():.4f} Train Acc: {acc:.4f}")
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         yhat_test = model.forward(X_test)
         test_loss = model.loss(yhat_test, y_test).item()
-        test_preds = (yhat_test >= 0.5).float()
+        test_preds = (torch.sigmoid(yhat_test) >= 0.5).float()
         test_acc = (test_preds == y_test).float().mean().item()
 
     print(f"Test Loss: {test_loss:.4f}")
