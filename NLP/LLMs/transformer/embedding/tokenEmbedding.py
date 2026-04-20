@@ -19,6 +19,7 @@ class TokenEmbedding(nn.Module):
             d_model (int): Dimension of the embedding vectors.
         """
         super().__init__()
+        self.d_model = d_model
         self.embedding_VD = nn.Embedding(vocab_size, d_model)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -31,4 +32,4 @@ class TokenEmbedding(nn.Module):
         Returns:
             torch.Tensor: Embedded output tensor.
         """
-        return self.embedding_VD(x)
+        return self.embedding_VD(x) * (self.d_model ** 0.5)
