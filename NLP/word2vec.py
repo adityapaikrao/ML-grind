@@ -145,25 +145,29 @@ class CBOWDataset(Dataset):
     def get_vocab_size(self) -> int:
         return len(self.vocab)
 
-corpus = [""]
-dataset = CBOWDataset(corpus)
-dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+if __name__ == "__main__":
+    corpus = [""]
+    dataset = CBOWDataset(corpus)
+    dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-# Training loop
-model = CBOWtorch(dataset.get_vocab_size())
-loss_fn = F.cross_entropy
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
-epochs = 100
-for _ in range(epochs):
-    total_loss = 0
-    for target, context in dataloader:
-        optimizer.zero_grad()
+    # Training loop
+    model = CBOWtorch(dataset.get_vocab_size())
+    loss_fn = F.cross_entropy
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10)
+    epochs = 100
+    for _ in range(epochs):
+        total_loss = 0
+        for target, context in dataloader:
+            optimizer.zero_grad()
+            
+            loss = loss_fn(model(context), target.squeeze(1)) # squeeze to convert (B, 1) -> (B,); squeeze(1) 
+                                                            # to avoid it becoming scalar
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
         
-        loss = loss_fn(model(context), target.squeeze(1)) # squeeze to convert (B, 1) -> (B,); squeeze(1) 
-                                                          # to avoid it becoming scalar
-        loss.backward()
-        optimizer.step()
-        total_loss += loss.item()
+        scheduler.step()
     
-    scheduler.step()
+    
+
