@@ -4,7 +4,7 @@ import heapq
 import string
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer, PorterStemmer
 
 stopwords = set(stopwords.words("english"))
 
@@ -41,8 +41,9 @@ class BOWSim:
 
         # stemming vs lemmatization
         lemmatizer = WordNetLemmatizer()
+        # stemmer = PorterStemmer(); stemmer.stem(t)
         tokens = [lemmatizer.lemmatize(t) for t in tokens]
-        return "".join(tokens)
+        return " ".join(tokens)
 
 
     def get_topk_similar(self, query: str, k: int = 4) -> List[str]:
